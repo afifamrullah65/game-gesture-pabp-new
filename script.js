@@ -1,50 +1,65 @@
+// --- 5 SOAL CONTOH PABP ---
 const questions = [
     {
-        question: "Rukun Islam yang pertama adalah...",
-        options: ["Shalat", "Syahadat", "Zakat"],
-        correct: 1 
+        question: "1. Rukun Islam yang pertama adalah...",
+        options: ["Shalat", "Syahadat", "Zakat", "Haji"],
+        correct: 1 // B (Syahadat)
     },
     {
-        question: "Malaikat yang bertugas menyampaikan wahyu adalah...",
-        options: ["Mikail", "Israfil", "Jibril"],
-        correct: 2 
+        question: "2. Malaikat yang bertugas menyampaikan wahyu adalah...",
+        options: ["Mikail", "Israfil", "Jibril", "Malik"],
+        correct: 2 // C (Jibril)
     },
     {
-        question: "Kitab suci umat Islam adalah...",
-        options: ["Al-Qur'an", "Injil", "Taurat"],
-        correct: 0 
+        question: "3. Kitab suci umat Islam adalah...",
+        options: ["Al-Qur'an", "Injil", "Taurat", "Zabur"],
+        correct: 0 // A (Al-Qur'an)
+    },
+    {
+        question: "4. Salat wajib dalam sehari semalam dikerjakan sebanyak...",
+        options: ["3 Waktu", "4 Waktu", "5 Waktu", "6 Waktu"],
+        correct: 2 // C (5 Waktu)
+    },
+    {
+        question: "5. Nabi dan Rasul yang terakhir adalah...",
+        options: ["Nabi Musa AS", "Nabi Isa AS", "Nabi Ibrahim AS", "Nabi Muhammad SAW"],
+        correct: 3 // D (Nabi Muhammad SAW)
     }
 ];
 
 let currentQuestionIndex = 0;
 let score = 0;
-let pointerX = 0;
-let pointerY = 0;
-let hoverStartTime = null;
-let selectedOptionHovered = null;
-const HOVER_DURATION_MS = 1500; 
+let holdStartTime = null;
+let detectedGestureTarget = null;
+const HOLD_DURATION_MS = 1500; // Tahan gestur selama 1.5 detik untuk memilih
 
 const videoElement = document.querySelector('.input_video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
 const questionText = document.getElementById('question-text');
+const optionsContainer = document.getElementById('options-container');
 const scoreDisplay = document.getElementById('score');
-const optionButtons = [
-    document.getElementById('opt-0'),
-    document.getElementById('opt-1'),
-    document.getElementById('opt-2')
-];
+const statusGesture = document.getElementById('status-gesture');
 
 function loadQuestion() {
     let q = questions[currentQuestionIndex];
     questionText.innerText = q.question;
+    optionsContainer.innerHTML = "";
+    
+    const labels = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Jempol)'];
     q.options.forEach((opt, idx) => {
-        optionButtons[idx].innerText = opt;
+        let btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.id = `opt-${idx}`;
+        btn.innerText = `${labels[idx]}: ${opt}`;
+        optionsContainer.appendChild(btn);
     });
-    hoverStartTime = null;
-    selectedOptionHovered = null;
+
+    holdStartTime = null;
+    detectedGestureTarget = null;
 }
 
+// --- MEDIAPIPE HANDS SETUP ---
 const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
@@ -65,74 +80,99 @@ function onHandResults(results) {
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
-        const indexTip = landmarks[8];
-        pointerX = indexTip.x * canvasElement.width;
-        pointerY = indexTip.y * canvasElement.height;
-
-        canvasCtx.beginPath();
-        canvasCtx.arc(pointerX, pointerY, 12, 0, 2 * Math.PI);
-        canvasCtx.fillStyle = '#e74c3c';
-        canvasCtx.fill();
-        canvasCtx.lineWidth = 3;
-        canvasCtx.strokeStyle = '#white';
-        canvasCtx.stroke();
-
-        checkButtonCollision();
+        
+        // Deteksi Gestur Berdasarkan Posisi Jari
+        let gestureIndex = recognizeGesture(landmarks);
+        
+        if (gestureIndex !== -1) {
+            let gestureNames = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Jempol)'];
+            statusGesture.innerText = `Terdeteksi Gestur: ${gestureNames[gestureIndex]}`;
+            
+            highlightButton(gestureIndex);
+            handleSelection(gestureIndex);
+        } else {
+            statusGesture.innerText = "Tunjukkan Gestur A, B, C, atau D";
+            resetHold();
+        }
     } else {
-        resetHover();
+        statusGesture.innerText = "Tangan Tidak Terdeteksi di Kamera";
+        resetHold();
     }
     canvasCtx.restore();
 }
 
-function checkButtonCollision() {
-    let mirroredX = canvasElement.width - pointerX;
-    let hitIndex = -1;
+// --- LOGIKA KLASIFIKASI GESTUR TANGAN ---
+function recognizeGesture(lm) {
+    // Helper hitung jarak ujung jari ke pergelangan tangan (landmark 0)
+    const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    const wrist = lm[0];
 
-    optionButtons.forEach((btn, index) => {
-        const rect = btn.getBoundingClientRect();
-        const areaRect = canvasElement.getBoundingClientRect();
-        
-        let btnLeft = (rect.left - areaRect.left) * (canvasElement.width / areaRect.width);
-        let btnRight = (rect.right - areaRect.left) * (canvasElement.width / areaRect.width);
-        let btnTop = (rect.top - areaRect.top) * (canvasElement.height / areaRect.height);
-        let btnBottom = (rect.bottom - areaRect.top) * (canvasElement.height / areaRect.height);
+    // Cek status jari (tekuk / lurus) berdasarkan jarak ke pergelangan
+    const isThumbOpen = dist(lm[4], wrist) > dist(lm[3], wrist) && (lm[4].x - lm[3].x > 0.02 || lm[4].y < lm[3].y);
+    const isIndexOpen = lm[8].y < lm[6].y;
+    const isMiddleOpen = lm[12].y < lm[10].y;
+    const isRingOpen = lm[16].y < lm[14].y;
+    const isPinkyOpen = lm[20].y < lm[18].y;
 
-        if (mirroredX >= btnLeft && mirroredX <= btnRight && pointerY >= btnTop && pointerY <= btnBottom) {
-            hitIndex = index;
+    // 1. GESTUR A: Mengepal (Semua jari menekuk)
+    if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+        return 0; // Pilihan A
+    }
+
+    // 2. GESTUR B: Piece / V-Sign (Telunjuk & Tengah lurus, manis & kelingking menekuk)
+    if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+        return 1; // Pilihan B
+    }
+
+    // 3. GESTUR C: Melambai Lima Jari (Semua jari terbuka)
+    if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) {
+        return 2; // Pilihan C
+    }
+
+    // 4. GESTUR D: Sip / Jempol (Jempol terbuka ke atas/samping, jari lain mengepal)
+    if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen && lm[4].y < lm[2].y) {
+        return 3; // Pilihan D
+    }
+
+    return -1; // Tidak dikenal
+}
+
+function highlightButton(activeIndex) {
+    for (let i = 0; i < 4; i++) {
+        let btn = document.getElementById(`opt-${i}`);
+        if (btn) {
+            if (i === activeIndex) btn.classList.add('active-hover');
+            else btn.classList.remove('active-hover');
         }
-    });
-
-    if (hitIndex !== -1) {
-        optionButtons.forEach((b, i) => {
-            if (i === hitIndex) b.classList.add('active-hover');
-            else b.classList.remove('active-hover');
-        });
-
-        if (selectedOptionHovered !== hitIndex) {
-            selectedOptionHovered = hitIndex;
-            hoverStartTime = Date.now();
-        } else {
-            let elapsedTime = Date.now() - hoverStartTime;
-            if (elapsedTime >= HOVER_DURATION_MS) {
-                submitAnswer(hitIndex);
-                resetHover();
-            }
-        }
-    } else {
-        resetHover();
     }
 }
 
-function resetHover() {
-    selectedOptionHovered = null;
-    hoverStartTime = null;
-    optionButtons.forEach(b => b.classList.remove('active-hover'));
+function handleSelection(gestureIndex) {
+    if (detectedGestureTarget !== gestureIndex) {
+        detectedGestureTarget = gestureIndex;
+        holdStartTime = Date.now();
+    } else {
+        let elapsed = Date.now() - holdStartTime;
+        if (elapsed >= HOLD_DURATION_MS) {
+            submitAnswer(gestureIndex);
+            resetHold();
+        }
+    }
+}
+
+function resetHold() {
+    detectedGestureTarget = null;
+    holdStartTime = null;
+    for (let i = 0; i < 4; i++) {
+        let btn = document.getElementById(`opt-${i}`);
+        if (btn) btn.classList.remove('active-hover');
+    }
 }
 
 function submitAnswer(selectedIndex) {
     let q = questions[currentQuestionIndex];
     if (selectedIndex === q.correct) {
-        score += 10;
+        score += 20;
         scoreDisplay.innerText = score;
         alert("Benar! Hebat!");
     } else {
@@ -151,6 +191,7 @@ function submitAnswer(selectedIndex) {
     }
 }
 
+// Inisialisasi Kamera
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         await hands.send({ image: videoElement });

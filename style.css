@@ -18,13 +18,23 @@ body {
 h1 {
     color: #333;
     margin-bottom: 5px;
+    font-size: 1.5rem;
 }
 
 #score-board {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: #27ae60;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
+}
+
+#gesture-guide {
+    font-size: 0.85rem;
+    color: #555;
+    background: #eef2f7;
+    padding: 6px;
+    border-radius: 6px;
+    margin-bottom: 12px;
 }
 
 .game-area {
@@ -50,37 +60,44 @@ canvas {
     bottom: 0;
     left: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 15px;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 12px;
     box-sizing: border-box;
     border-top: 2px solid #3498db;
 }
 
 #question-text {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #2c3e50;
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
 }
 
 .options-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 6px;
 }
 
 .option-btn {
-    padding: 10px;
-    font-size: 0.95rem;
+    padding: 8px 12px;
+    font-size: 0.9rem;
     font-weight: bold;
     background-color: #3498db;
     color: white;
     border: none;
     border-radius: 6px;
-    cursor: pointer;
+    text-align: left;
     transition: background 0.2s;
 }
 
 .option-btn.active-hover {
     background-color: #e74c3c !important;
-    transform: scale(1.05);
+    transform: scale(1.01);
+}
+
+#status-gesture {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #d35400;
 }

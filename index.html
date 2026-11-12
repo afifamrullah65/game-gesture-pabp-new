@@ -13,22 +13,25 @@
 <body>
 
     <div class="container">
-        <h1>Kuis Edukasi Gesture Tangan</h1>
+        <h1>Kuis Edukasi Gesture Tangan PABP</h1>
         <div id="score-board">Skor: <span id="score">0</span></div>
+        <div id="gesture-guide">
+            <span><b>A:</b> Mengepal</span> | 
+            <span><b>B:</b> Piece (V)</span> | 
+            <span><b>C:</b> Lima Jari</span> | 
+            <span><b>D:</b> Jempol</span>
+        </div>
         
-        <!-- Area Game Utama (Video dan Tombol disatukan di dalam satu layar) -->
         <div class="game-area">
             <video class="input_video" autoplay playsinline style="display:none;"></video>
             <canvas id="output_canvas" width="640" height="480"></canvas>
             
-            <!-- Kotak Soal & Tombol diletakkan melayang di bagian bawah dalam video -->
             <div id="question-overlay">
                 <h2 id="question-text">Memuat Soal...</h2>
-                <div class="options-grid">
-                    <button class="option-btn" id="opt-0">Pilihan A</button>
-                    <button class="option-btn" id="opt-1">Pilihan B</button>
-                    <button class="option-btn" id="opt-2">Pilihan C</button>
+                <div class="options-grid" id="options-container">
+                    <!-- Tombol pilihan akan digenerate otomatis -->
                 </div>
+                <div id="status-gesture">Deteksi Gestur: Menunggu...</div>
             </div>
         </div>
     </div>
