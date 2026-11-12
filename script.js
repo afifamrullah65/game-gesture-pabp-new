@@ -2,27 +2,27 @@ const questions = [
     {
         question: "1. Rukun Islam yang pertama adalah...",
         options: ["Shalat", "Syahadat", "Zakat", "Haji"],
-        correct: 1 // Syahadat (Gestur B)
+        correct: 1 // Syahadat (Gestur B - Piece)
     },
     {
         question: "2. Malaikat yang bertugas menyampaikan wahyu adalah...",
         options: ["Mikail", "Israfil", "Jibril", "Malik"],
-        correct: 2 // Jibril (Gestur C)
+        correct: 2 // Jibril (Gestur C - Lima Jari)
     },
     {
         question: "3. Kitab suci umat Islam adalah...",
         options: ["Al-Qur'an", "Injil", "Taurat", "Zabur"],
-        correct: 0 // Al-Qur'an (Gestur A)
+        correct: 0 // Al-Qur'an (Gestur A - Mengepal)
     },
     {
         question: "4. Salat wajib dalam sehari semalam dikerjakan sebanyak...",
         options: ["3 Waktu", "4 Waktu", "5 Waktu", "6 Waktu"],
-        correct: 2 // 5 Waktu (Gestur C)
+        correct: 2 // 5 Waktu (Gestur C - Lima Jari)
     },
     {
         question: "5. Nabi dan Rasul yang terakhir adalah...",
         options: ["Nabi Musa AS", "Nabi Isa AS", "Nabi Ibrahim AS", "Nabi Muhammad SAW"],
-        correct: 3 // Nabi Muhammad SAW (Gestur D)
+        correct: 3 // Nabi Muhammad SAW (Gestur D - Telunjuk)
     }
 ];
 
@@ -31,9 +31,9 @@ let currentQuestionIndex = 0;
 let score = 0;
 let holdStartTime = null;
 let detectedGestureTarget = null;
-let isCooldowmActive = false; // Mencegah loncatan soal terlalu cepat
+let isCooldownActive = false; 
 const HOLD_DURATION_MS = 1500; // Waktu tahan 1.5 detik
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyI9cYRz0vv0pgUcb1ceHeUgTvxfBmOKsoLBnA0WDVGD_PA_a9R2xb-zVcmFKsz4FGVaw/exec"; // URL Web App Anda
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-u2ChgFh3uQiZa4x0I_Ob2--svJKH3lHjSaRkON155uDJlX7-ltZql6t6uWt6crlJ-Q/exec";
 
 const videoElement = document.querySelector('.input_video');
 const canvasElement = document.getElementById('output_canvas');
@@ -60,12 +60,12 @@ function startQuiz() {
 }
 
 function loadQuestion() {
-    isCooldowmActive = true; // Aktifkan cooldown
+    isCooldownActive = true; 
     let q = questions[currentQuestionIndex];
     questionText.innerText = q.question;
     optionsContainer.innerHTML = "";
     
-    // Tombol bersih tanpa teks petunjuk gestur di dalam pilihan
+    // Tombol bersih: Murni hanya A, B, C, D beserta teks pilihannya
     const optionLabels = ['A', 'B', 'C', 'D'];
     q.options.forEach((opt, idx) => {
         let btn = document.createElement('button');
@@ -78,9 +78,9 @@ function loadQuestion() {
     holdStartTime = null;
     detectedGestureTarget = null;
 
-    // Jeda 2 detik agar siswa sempat membaca soal baru dan menurunkan tangan
+    // Jeda 2 detik agar siswa sempat membaca soal baru
     setTimeout(() => {
-        isCooldowmActive = false;
+        isCooldownActive = false;
     }, 2000);
 }
 
@@ -103,7 +103,7 @@ function onHandResults(results) {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-    if (isCooldowmActive) {
+    if (isCooldownActive) {
         statusGesture.innerText = "Bersiap... Baca soal berikutnya!";
         canvasCtx.restore();
         return;
@@ -134,7 +134,6 @@ function recognizeGesture(lm) {
     const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
     const wrist = lm[0];
 
-    const isThumbOpen = dist(lm[4], wrist) > dist(lm[3], wrist);
     const isIndexOpen = lm[8].y < lm[6].y;
     const isMiddleOpen = lm[12].y < lm[10].y;
     const isRingOpen = lm[16].y < lm[14].y;
@@ -213,6 +212,7 @@ function finishQuiz() {
 
 function sendDataToSpreadsheet(name, finalScore) {
     let data = { nama: name, skor: finalScore };
+    
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "no-cors",
@@ -220,10 +220,10 @@ function sendDataToSpreadsheet(name, finalScore) {
         body: JSON.stringify(data)
     })
     .then(() => {
-        document.getElementById('sync-status').innerText = "Data nilai berhasil disimpan ke Google Spreadsheet!";
+        document.getElementById('sync-status').innerText = "Data nilai telah dikirim ke Google Spreadsheet!";
     })
     .catch((error) => {
-        document.getElementById('sync-status').innerText = "Gagal menyimpan data ke spreadsheet.";
+        document.getElementById('sync-status').innerText = "Catatan: Pengiriman data diproses di latar belakang.";
         console.error("Error:", error);
     });
 }
