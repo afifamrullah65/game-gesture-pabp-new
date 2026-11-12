@@ -13,7 +13,7 @@
 <body>
 
     <div class="container">
-        <!-- HALAMAN 1: INPUT NAMA SISWA -->
+        <!-- HALAMAN 1: INPUT NAMA -->
         <div id="login-screen">
             <h1>Kuis Edukasi Gesture Tangan</h1>
             <p>Silakan masukkan nama lengkap Anda sebelum mulai bermain:</p>
@@ -26,11 +26,13 @@
         <div id="game-screen" style="display: none;">
             <h1>Kuis Edukasi PABP</h1>
             <div id="player-info">Pemain: <span id="display-name"></span> | Skor: <span id="score">0</span></div>
+            
+            <!-- Petunjuk Gestur Dipisah di Samping/Atas -->
             <div id="gesture-guide">
-                <span><b>A:</b> Mengepal</span> | 
-                <span><b>B:</b> Piece (2 Jari)</span> | 
-                <span><b>C:</b> Lima Jari</span> | 
-                <span><b>D:</b> Telunjuk Saja</span>
+                <div class="guide-item">✊ <b>A:</b> Mengepal</div>
+                <div class="guide-item">✌️ <b>B:</b> Piece (2 Jari)</div>
+                <div class="guide-item">🖐️ <b>C:</b> Lima Jari</div>
+                <div class="guide-item">☝️ <b>D:</b> Telunjuk Saja</div>
             </div>
             
             <div class="game-area">
@@ -45,7 +47,7 @@
             </div>
         </div>
 
-        <!-- HALAMAN 3: SELESAI & KIRIM DATA -->
+        <!-- HALAMAN 3: SELESAI -->
         <div id="finish-screen" style="display: none;">
             <h1>Permainan Selesai!</h1>
             <p>Terima kasih, <span id="final-name"></span>.</p>

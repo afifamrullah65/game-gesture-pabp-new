@@ -1,29 +1,28 @@
-// --- 5 SOAL CONTOH PABP ---
 const questions = [
     {
         question: "1. Rukun Islam yang pertama adalah...",
         options: ["Shalat", "Syahadat", "Zakat", "Haji"],
-        correct: 1 // B (Syahadat)
+        correct: 1 // Syahadat (Gestur B)
     },
     {
         question: "2. Malaikat yang bertugas menyampaikan wahyu adalah...",
         options: ["Mikail", "Israfil", "Jibril", "Malik"],
-        correct: 2 // C (Jibril)
+        correct: 2 // Jibril (Gestur C)
     },
     {
         question: "3. Kitab suci umat Islam adalah...",
         options: ["Al-Qur'an", "Injil", "Taurat", "Zabur"],
-        correct: 0 // A (Al-Qur'an)
+        correct: 0 // Al-Qur'an (Gestur A)
     },
     {
         question: "4. Salat wajib dalam sehari semalam dikerjakan sebanyak...",
         options: ["3 Waktu", "4 Waktu", "5 Waktu", "6 Waktu"],
-        correct: 2 // C (5 Waktu)
+        correct: 2 // 5 Waktu (Gestur C)
     },
     {
         question: "5. Nabi dan Rasul yang terakhir adalah...",
         options: ["Nabi Musa AS", "Nabi Isa AS", "Nabi Ibrahim AS", "Nabi Muhammad SAW"],
-        correct: 3 // D (Telunjuk Saja)
+        correct: 3 // Nabi Muhammad SAW (Gestur D)
     }
 ];
 
@@ -32,8 +31,9 @@ let currentQuestionIndex = 0;
 let score = 0;
 let holdStartTime = null;
 let detectedGestureTarget = null;
-const HOLD_DURATION_MS = 1500; // Tahan gestur 1.5 detik untuk memilih
-const WEB_APP_URL = "GANTI_DENGAN_URL_DEPLOY_APPS_SCRIPT_ANDA"; // Masukkan URL Apps Script di sini nanti
+let isCooldowmActive = false; // Mencegah loncatan soal terlalu cepat
+const HOLD_DURATION_MS = 1500; // Waktu tahan 1.5 detik
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyI9cYRz0vv0pgUcb1ceHeUgTvxfBmOKsoLBnA0WDVGD_PA_a9R2xb-zVcmFKsz4FGVaw/exec"; // URL Web App Anda
 
 const videoElement = document.querySelector('.input_video');
 const canvasElement = document.getElementById('output_canvas');
@@ -60,21 +60,28 @@ function startQuiz() {
 }
 
 function loadQuestion() {
+    isCooldowmActive = true; // Aktifkan cooldown
     let q = questions[currentQuestionIndex];
     questionText.innerText = q.question;
     optionsContainer.innerHTML = "";
     
-    const labels = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Telunjuk)'];
+    // Tombol bersih tanpa teks petunjuk gestur di dalam pilihan
+    const optionLabels = ['A', 'B', 'C', 'D'];
     q.options.forEach((opt, idx) => {
         let btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.id = `opt-${idx}`;
-        btn.innerText = `${labels[idx]}: ${opt}`;
+        btn.innerText = `${optionLabels[idx]}. ${opt}`;
         optionsContainer.appendChild(btn);
     });
 
     holdStartTime = null;
     detectedGestureTarget = null;
+
+    // Jeda 2 detik agar siswa sempat membaca soal baru dan menurunkan tangan
+    setTimeout(() => {
+        isCooldowmActive = false;
+    }, 2000);
 }
 
 // --- MEDIAPIPE HANDS SETUP ---
@@ -95,6 +102,12 @@ function onHandResults(results) {
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+    if (isCooldowmActive) {
+        statusGesture.innerText = "Bersiap... Baca soal berikutnya!";
+        canvasCtx.restore();
+        return;
+    }
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
@@ -117,7 +130,6 @@ function onHandResults(results) {
     canvasCtx.restore();
 }
 
-// --- KLASIFIKASI 4 GESTUR TANGAN ---
 function recognizeGesture(lm) {
     const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
     const wrist = lm[0];
@@ -184,7 +196,7 @@ function submitAnswer(selectedIndex) {
 
     currentQuestionIndex++;
     if (currentQuestionIndex < questions.length) {
-        loadQuestion(); // Langsung lanjut tanpa popup
+        loadQuestion();
     } else {
         finishQuiz();
     }
@@ -196,16 +208,10 @@ function finishQuiz() {
     document.getElementById('final-name').innerText = playerName;
     document.getElementById('final-score').innerText = score;
 
-    // Kirim data otomatis ke Google Spreadsheet via Apps Script
     sendDataToSpreadsheet(playerName, score);
 }
 
 function sendDataToSpreadsheet(name, finalScore) {
-    if (WEB_APP_URL.includes("GANTI_DENGAN_URL")) {
-        document.getElementById('sync-status').innerText = "Catatan: URL Google Apps Script belum diatur.";
-        return;
-    }
-
     let data = { nama: name, skor: finalScore };
     fetch(WEB_APP_URL, {
         method: "POST",
@@ -222,7 +228,6 @@ function sendDataToSpreadsheet(name, finalScore) {
     });
 }
 
-// Inisialisasi Kamera
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         await hands.send({ image: videoElement });

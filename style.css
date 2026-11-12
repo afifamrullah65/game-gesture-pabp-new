@@ -51,16 +51,18 @@ h1 {
     font-size: 1.1rem;
     font-weight: bold;
     color: #2c3e50;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 #gesture-guide {
-    font-size: 0.85rem;
-    color: #555;
+    display: flex;
+    justify-content: space-around;
     background: #eef2f7;
-    padding: 6px;
+    padding: 8px;
     border-radius: 6px;
     margin-bottom: 12px;
+    font-size: 0.8rem;
+    color: #333;
 }
 
 .game-area {
