@@ -16,17 +16,19 @@
         <h1>Kuis Edukasi Gesture Tangan</h1>
         <div id="score-board">Skor: <span id="score">0</span></div>
         
+        <!-- Area Game Utama (Video dan Tombol disatukan di dalam satu layar) -->
         <div class="game-area">
             <video class="input_video" autoplay playsinline style="display:none;"></video>
             <canvas id="output_canvas" width="640" height="480"></canvas>
-        </div>
-
-        <div id="question-container">
-            <h2 id="question-text">Memuat Soal...</h2>
-            <div class="options-grid">
-                <button class="option-btn" id="opt-0">Pilihan A</button>
-                <button class="option-btn" id="opt-1">Pilihan B</button>
-                <button class="option-btn" id="opt-2">Pilihan C</button>
+            
+            <!-- Kotak Soal & Tombol diletakkan melayang di bagian bawah dalam video -->
+            <div id="question-overlay">
+                <h2 id="question-text">Memuat Soal...</h2>
+                <div class="options-grid">
+                    <button class="option-btn" id="opt-0">Pilihan A</button>
+                    <button class="option-btn" id="opt-1">Pilihan B</button>
+                    <button class="option-btn" id="opt-2">Pilihan C</button>
+                </div>
             </div>
         </div>
     </div>

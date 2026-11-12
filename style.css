@@ -34,39 +34,43 @@ h1 {
     border-radius: 8px;
     overflow: hidden;
     background: #000;
+    width: 100%;
+    max-width: 640px;
 }
 
 canvas {
     display: block;
     width: 100%;
-    max-width: 640px;
     height: auto;
     transform: scaleX(-1); 
 }
 
-#question-container {
-    margin-top: 20px;
+#question-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
     padding: 15px;
-    background: #eec9001a;
-    border-radius: 8px;
-    border: 1px solid #f39c12;
+    box-sizing: border-box;
+    border-top: 2px solid #3498db;
 }
 
 #question-text {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: #2c3e50;
-    margin-bottom: 15px;
+    margin: 0 0 10px 0;
 }
 
 .options-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 8px;
 }
 
 .option-btn {
-    padding: 12px;
-    font-size: 1rem;
+    padding: 10px;
+    font-size: 0.95rem;
     font-weight: bold;
     background-color: #3498db;
     color: white;
