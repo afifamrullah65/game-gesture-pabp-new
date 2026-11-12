@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Gesture Tangan PABP</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- CDN MediaPipe Hands & Camera Utils -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Kuis Edukasi Gesture Tangan</h1>
+        <div id="score-board">Skor: <span id="score">0</span></div>
+        
+        <div class="game-area">
+            <video class="input_video" autoplay playsinline style="display:none;"></video>
+            <canvas id="output_canvas" width="640" height="480"></canvas>
+        </div>
+
+        <div id="question-container">
+            <h2 id="question-text">Memuat Soal...</h2>
+            <div class="options-grid">
+                <button class="option-btn" id="opt-0">Pilihan A</button>
+                <button class="option-btn" id="opt-1">Pilihan B</button>
+                <button class="option-btn" id="opt-2">Pilihan C</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
