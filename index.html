@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Gesture Tangan PABP</title>
+    <title>Kuis Gesture Tangan PABP</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- CDN MediaPipe Hands & Camera Utils -->
@@ -13,26 +13,45 @@
 <body>
 
     <div class="container">
-        <h1>Kuis Edukasi Gesture Tangan PABP</h1>
-        <div id="score-board">Skor: <span id="score">0</span></div>
-        <div id="gesture-guide">
-            <span><b>A:</b> Mengepal</span> | 
-            <span><b>B:</b> Piece (V)</span> | 
-            <span><b>C:</b> Lima Jari</span> | 
-            <span><b>D:</b> Jempol</span>
+        <!-- HALAMAN 1: INPUT NAMA SISWA -->
+        <div id="login-screen">
+            <h1>Kuis Edukasi Gesture Tangan</h1>
+            <p>Silakan masukkan nama lengkap Anda sebelum mulai bermain:</p>
+            <input type="text" id="student-name" placeholder="Contoh: Ahmad Zaki" autocomplete="off">
+            <br>
+            <button id="start-btn" onclick="startQuiz()">Mulai Permainan</button>
         </div>
-        
-        <div class="game-area">
-            <video class="input_video" autoplay playsinline style="display:none;"></video>
-            <canvas id="output_canvas" width="640" height="480"></canvas>
-            
-            <div id="question-overlay">
-                <h2 id="question-text">Memuat Soal...</h2>
-                <div class="options-grid" id="options-container">
-                    <!-- Tombol pilihan akan digenerate otomatis -->
-                </div>
-                <div id="status-gesture">Deteksi Gestur: Menunggu...</div>
+
+        <!-- HALAMAN 2: ARENA GAME -->
+        <div id="game-screen" style="display: none;">
+            <h1>Kuis Edukasi PABP</h1>
+            <div id="player-info">Pemain: <span id="display-name"></span> | Skor: <span id="score">0</span></div>
+            <div id="gesture-guide">
+                <span><b>A:</b> Mengepal</span> | 
+                <span><b>B:</b> Piece (2 Jari)</span> | 
+                <span><b>C:</b> Lima Jari</span> | 
+                <span><b>D:</b> Telunjuk Saja</span>
             </div>
+            
+            <div class="game-area">
+                <video class="input_video" autoplay playsinline style="display:none;"></video>
+                <canvas id="output_canvas" width="640" height="480"></canvas>
+                
+                <div id="question-overlay">
+                    <h2 id="question-text">Memuat Soal...</h2>
+                    <div class="options-grid" id="options-container"></div>
+                    <div id="status-gesture">Deteksi Gestur: Menunggu...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HALAMAN 3: SELESAI & KIRIM DATA -->
+        <div id="finish-screen" style="display: none;">
+            <h1>Permainan Selesai!</h1>
+            <p>Terima kasih, <span id="final-name"></span>.</p>
+            <p>Skor Akhir Anda: <strong id="final-score">0</strong></p>
+            <p id="sync-status" style="color: #2980b9; font-weight: bold;">Menyimpan hasil ke Google Spreadsheet...</p>
+            <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">Main Lagi</button>
         </div>
     </div>
 

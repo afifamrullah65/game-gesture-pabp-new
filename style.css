@@ -17,14 +17,40 @@ body {
 
 h1 {
     color: #333;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     font-size: 1.5rem;
 }
 
-#score-board {
+#login-screen {
+    padding: 30px 10px;
+}
+
+#login-screen input {
+    padding: 10px;
+    font-size: 1rem;
+    width: 80%;
+    max-width: 300px;
+    border: 2px solid #bdc3c7;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#start-btn {
+    padding: 10px 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#player-info {
     font-size: 1.1rem;
     font-weight: bold;
-    color: #27ae60;
+    color: #2c3e50;
     margin-bottom: 5px;
 }
 
@@ -60,7 +86,7 @@ canvas {
     bottom: 0;
     left: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.95);
     padding: 12px;
     box-sizing: border-box;
     border-top: 2px solid #3498db;
@@ -93,7 +119,6 @@ canvas {
 
 .option-btn.active-hover {
     background-color: #e74c3c !important;
-    transform: scale(1.01);
 }
 
 #status-gesture {

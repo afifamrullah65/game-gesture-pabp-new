@@ -23,15 +23,17 @@ const questions = [
     {
         question: "5. Nabi dan Rasul yang terakhir adalah...",
         options: ["Nabi Musa AS", "Nabi Isa AS", "Nabi Ibrahim AS", "Nabi Muhammad SAW"],
-        correct: 3 // D (Nabi Muhammad SAW)
+        correct: 3 // D (Telunjuk Saja)
     }
 ];
 
+let playerName = "";
 let currentQuestionIndex = 0;
 let score = 0;
 let holdStartTime = null;
 let detectedGestureTarget = null;
-const HOLD_DURATION_MS = 1500; // Tahan gestur selama 1.5 detik untuk memilih
+const HOLD_DURATION_MS = 1500; // Tahan gestur 1.5 detik untuk memilih
+const WEB_APP_URL = "GANTI_DENGAN_URL_DEPLOY_APPS_SCRIPT_ANDA"; // Masukkan URL Apps Script di sini nanti
 
 const videoElement = document.querySelector('.input_video');
 const canvasElement = document.getElementById('output_canvas');
@@ -41,12 +43,28 @@ const optionsContainer = document.getElementById('options-container');
 const scoreDisplay = document.getElementById('score');
 const statusGesture = document.getElementById('status-gesture');
 
+function startQuiz() {
+    const inputName = document.getElementById('student-name').value.trim();
+    if (!inputName) {
+        alert("Silakan masukkan nama Anda terlebih dahulu!");
+        return;
+    }
+    playerName = inputName;
+    document.getElementById('display-name').innerText = playerName;
+    
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'block';
+
+    loadQuestion();
+    camera.start();
+}
+
 function loadQuestion() {
     let q = questions[currentQuestionIndex];
     questionText.innerText = q.question;
     optionsContainer.innerHTML = "";
     
-    const labels = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Jempol)'];
+    const labels = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Telunjuk)'];
     q.options.forEach((opt, idx) => {
         let btn = document.createElement('button');
         btn.className = 'option-btn';
@@ -80,13 +98,11 @@ function onHandResults(results) {
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
-        
-        // Deteksi Gestur Berdasarkan Posisi Jari
         let gestureIndex = recognizeGesture(landmarks);
         
         if (gestureIndex !== -1) {
-            let gestureNames = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Jempol)'];
-            statusGesture.innerText = `Terdeteksi Gestur: ${gestureNames[gestureIndex]}`;
+            let gestureNames = ['A (Mengepal)', 'B (Piece)', 'C (Lima Jari)', 'D (Telunjuk)'];
+            statusGesture.innerText = `Terdeteksi: ${gestureNames[gestureIndex]}`;
             
             highlightButton(gestureIndex);
             handleSelection(gestureIndex);
@@ -95,46 +111,36 @@ function onHandResults(results) {
             resetHold();
         }
     } else {
-        statusGesture.innerText = "Tangan Tidak Terdeteksi di Kamera";
+        statusGesture.innerText = "Tangan Tidak Terdeteksi";
         resetHold();
     }
     canvasCtx.restore();
 }
 
-// --- LOGIKA KLASIFIKASI GESTUR TANGAN ---
+// --- KLASIFIKASI 4 GESTUR TANGAN ---
 function recognizeGesture(lm) {
-    // Helper hitung jarak ujung jari ke pergelangan tangan (landmark 0)
     const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
     const wrist = lm[0];
 
-    // Cek status jari (tekuk / lurus) berdasarkan jarak ke pergelangan
-    const isThumbOpen = dist(lm[4], wrist) > dist(lm[3], wrist) && (lm[4].x - lm[3].x > 0.02 || lm[4].y < lm[3].y);
+    const isThumbOpen = dist(lm[4], wrist) > dist(lm[3], wrist);
     const isIndexOpen = lm[8].y < lm[6].y;
     const isMiddleOpen = lm[12].y < lm[10].y;
     const isRingOpen = lm[16].y < lm[14].y;
     const isPinkyOpen = lm[20].y < lm[18].y;
 
-    // 1. GESTUR A: Mengepal (Semua jari menekuk)
-    if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
-        return 0; // Pilihan A
-    }
+    // A: Mengepal (Semua jari menekuk)
+    if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) return 0;
 
-    // 2. GESTUR B: Piece / V-Sign (Telunjuk & Tengah lurus, manis & kelingking menekuk)
-    if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
-        return 1; // Pilihan B
-    }
+    // B: Piece / V-Sign (Telunjuk & Tengah lurus, lainnya menekuk)
+    if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) return 1;
 
-    // 3. GESTUR C: Melambai Lima Jari (Semua jari terbuka)
-    if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) {
-        return 2; // Pilihan C
-    }
+    // C: Lima Jari (Semua terbuka)
+    if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) return 2;
 
-    // 4. GESTUR D: Sip / Jempol (Jempol terbuka ke atas/samping, jari lain mengepal)
-    if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen && lm[4].y < lm[2].y) {
-        return 3; // Pilihan D
-    }
+    // D: Telunjuk Saja (Telunjuk lurus ke atas, jari lain mengepal)
+    if (isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) return 3;
 
-    return -1; // Tidak dikenal
+    return -1;
 }
 
 function highlightButton(activeIndex) {
@@ -174,21 +180,46 @@ function submitAnswer(selectedIndex) {
     if (selectedIndex === q.correct) {
         score += 20;
         scoreDisplay.innerText = score;
-        alert("Benar! Hebat!");
-    } else {
-        alert("Kurang tepat!");
     }
 
     currentQuestionIndex++;
     if (currentQuestionIndex < questions.length) {
-        loadQuestion();
+        loadQuestion(); // Langsung lanjut tanpa popup
     } else {
-        alert("Permainan Selesai! Skor Akhir Anda: " + score);
-        currentQuestionIndex = 0;
-        score = 0;
-        scoreDisplay.innerText = score;
-        loadQuestion();
+        finishQuiz();
     }
+}
+
+function finishQuiz() {
+    document.getElementById('game-screen').style.display = 'none';
+    document.getElementById('finish-screen').style.display = 'block';
+    document.getElementById('final-name').innerText = playerName;
+    document.getElementById('final-score').innerText = score;
+
+    // Kirim data otomatis ke Google Spreadsheet via Apps Script
+    sendDataToSpreadsheet(playerName, score);
+}
+
+function sendDataToSpreadsheet(name, finalScore) {
+    if (WEB_APP_URL.includes("GANTI_DENGAN_URL")) {
+        document.getElementById('sync-status').innerText = "Catatan: URL Google Apps Script belum diatur.";
+        return;
+    }
+
+    let data = { nama: name, skor: finalScore };
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        document.getElementById('sync-status').innerText = "Data nilai berhasil disimpan ke Google Spreadsheet!";
+    })
+    .catch((error) => {
+        document.getElementById('sync-status').innerText = "Gagal menyimpan data ke spreadsheet.";
+        console.error("Error:", error);
+    });
 }
 
 // Inisialisasi Kamera
@@ -199,6 +230,3 @@ const camera = new Camera(videoElement, {
     width: 640,
     height: 480
 });
-camera.start();
-
-loadQuestion();
